@@ -32,4 +32,4 @@ jobs:
           command: clippy
           args: -- -D warnings
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-actions@v2
+        uses: codecov/codecov-action@v2
