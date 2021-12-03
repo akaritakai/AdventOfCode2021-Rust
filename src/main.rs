@@ -13,9 +13,9 @@ mod puzzle_input_fetcher;
 fn main() {
     let mut fetcher = PuzzleInputFetcher::create();
     let puzzles: Vec<Box<dyn AbstractPuzzle>> = vec![
-        Puzzle01::create(fetcher.get_puzzle_input(1).unwrap()),
-        Puzzle02::create(fetcher.get_puzzle_input(2).unwrap()),
-        Puzzle03::create(fetcher.get_puzzle_input(3).unwrap()),
+        Puzzle01::create(fetcher.fetch_puzzle_input(1).unwrap()),
+        Puzzle02::create(fetcher.fetch_puzzle_input(2).unwrap()),
+        Puzzle03::create(fetcher.fetch_puzzle_input(3).unwrap()),
     ];
     for puzzle in puzzles.iter() {
         let day = format!("{:02}", puzzle.get_day());

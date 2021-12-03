@@ -1,7 +1,5 @@
 use std::fs;
-use std::ops::Not;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
 
 use reqwest::StatusCode;
 
@@ -15,14 +13,8 @@ pub struct PuzzleInputFetcher {
     // The location where the session token is stored (by default 'cookie.txt')
     session_token_path: PathBuf,
 
-    // Per-day lock for loading the puzzle input into our input cache
-    is_input_set: Vec<Arc<RwLock<bool>>>,
-
     // The input cache that stores our puzzles
     inputs: Vec<String>,
-
-    // Lock for loading the session token into our session token cache
-    is_session_token_set: Arc<RwLock<bool>>,
 
     // The session token cache
     session_token: String,
@@ -45,15 +37,11 @@ impl PuzzleInputFetcher {
         input_path: &Path,
         session_token_path: &Path,
     ) -> PuzzleInputFetcher {
-        let mut is_input_set = Vec::with_capacity(25);
-        (0..25).for_each(|_| is_input_set.push(Arc::new(RwLock::new(false))));
         PuzzleInputFetcher {
             base_url: base_url.to_string(),
             input_path: input_path.to_path_buf(),
-            is_input_set,
             inputs: vec![String::new(); 25],
             session_token_path: session_token_path.to_path_buf(),
-            is_session_token_set: Arc::new(RwLock::new(false)),
             session_token: String::new(),
         }
     }
@@ -61,41 +49,29 @@ impl PuzzleInputFetcher {
     // Returns the puzzle input for the given day first by fetching it from the in-memory cache,
     // then by fetching it from the local store, and finally by fetching it from the remote store
     // (the site itself).
-    pub fn get_puzzle_input(&mut self, day: u8) -> Result<&str> {
+    pub fn fetch_puzzle_input(&mut self, day: u8) -> Result<&str> {
         let index = (day - 1) as usize;
-        if self.is_input_set[index].read().unwrap().not() {
+        if self.inputs[index].is_empty() {
             // Puzzle is not in our cache
-            let mut is_input_set = self.is_input_set[index].write().unwrap();
-            if is_input_set.not() {
-                if let Ok(local_input) = self.fetch_local_puzzle_input(day) {
-                    // Puzzle is in our local store
-                    self.inputs[index].push_str(local_input.as_str());
-                    *is_input_set = true;
-                    return Ok(self.inputs[index].as_str());
-                }
-                // Puzzle is not in our local store
-                if self.is_session_token_set.read().unwrap().not() {
-                    // Session token is not cached
-                    let mut is_session_token_set = self.is_session_token_set.write().unwrap();
-                    if is_session_token_set.not() {
-                        let session_token = self.fetch_session_token()?;
-                        self.session_token.push_str(session_token.trim());
-                        *is_session_token_set = true;
-                    }
-                }
-                let session_token = self.session_token.as_str();
-                let remote_input = self.fetch_remote_puzzle_input(day, session_token)?;
-                self.store_puzzle_input_locally(day, remote_input.as_str());
-                self.inputs[index].push_str(remote_input.as_str());
-                *is_input_set = true;
-                return Ok(self.inputs[index].as_str());
+            if let Ok(local_input) = self.fetch_local_puzzle_input(day) {
+                // Puzzle is in our local store
+                self.inputs[index] = local_input;
+                return Ok(&self.inputs[index]);
             }
+            // Puzzle is not in our local store
+            if self.session_token.is_empty() {
+                // Session token is not cached
+                self.session_token = self.fetch_session_token()?.trim().to_string();
+            }
+            let remote_input = self.fetch_remote_puzzle_input(day, &self.session_token)?;
+            self.store_puzzle_input_locally(day, &remote_input);
+            self.inputs[index] = remote_input;
         }
-        Ok(self.inputs[index].as_str())
+        Ok(&self.inputs[index])
     }
 
     fn fetch_local_puzzle_input(&self, day: u8) -> Result<String> {
-        let path = self.input_path.to_path_buf().join(day.to_string());
+        let path = self.input_path.join(day.to_string());
         fs::read_to_string(path)
             .map_err(|e| format!("Failed to fetch local puzzle for day {}: {}", day, e))
     }
@@ -134,7 +110,7 @@ impl PuzzleInputFetcher {
 
     // Fetches the session token from the disk
     fn fetch_session_token(&self) -> Result<String> {
-        let session_token = fs::read_to_string(self.session_token_path.to_path_buf())
+        let session_token = fs::read_to_string(&self.session_token_path)
             .map(|s| s.trim().to_string())
             .map_err(|e| {
                 format!(
@@ -163,7 +139,7 @@ fn remote_url_path(day: u8) -> String {
 }
 
 fn path_to_str(path: &Path) -> String {
-    path.to_path_buf().into_os_string().into_string().unwrap()
+    path.to_str().unwrap().to_string()
 }
 
 type Result<T> = std::result::Result<T, String>;
@@ -203,7 +179,7 @@ mod tests {
                     .header("Cookie", format!("session={}", session_token).as_str());
                 then.status(501);
             });
-            assert_eq!(fetcher.get_puzzle_input(day).unwrap(), puzzle_input);
+            assert_eq!(fetcher.fetch_puzzle_input(day).unwrap(), puzzle_input);
             mock.assert_hits(0);
         }
     }
@@ -232,7 +208,7 @@ mod tests {
                     .header("Cookie", format!("session={}", session_token).as_str());
                 then.status(200).body(&puzzle_input);
             });
-            assert_eq!(fetcher.get_puzzle_input(day).unwrap(), puzzle_input);
+            assert_eq!(fetcher.fetch_puzzle_input(day).unwrap(), puzzle_input);
             mock.assert();
         }
     }
@@ -260,7 +236,7 @@ mod tests {
                     .header("Cookie", format!("session={}", session_token).as_str());
                 then.status(501);
             });
-            assert!(fetcher.get_puzzle_input(day).is_err());
+            assert!(fetcher.fetch_puzzle_input(day).is_err());
             mock.assert();
         }
     }
@@ -283,7 +259,7 @@ mod tests {
                 then.status(400)
                     .body("Puzzle inputs differ by user.  Please log in to get your puzzle input.");
             });
-            assert!(fetcher.get_puzzle_input(day).is_err());
+            assert!(fetcher.fetch_puzzle_input(day).is_err());
             mock.assert_hits(0);
         }
     }
@@ -312,17 +288,15 @@ mod tests {
                 puzzle_store_dir.path(),
                 session_token_path.path(),
             );
-            for day in 1..26 {
-                let puzzle_input = random_puzzle();
-                let mock = server.mock(|when, then| {
-                    when.method(GET)
-                        .path(remote_url_path(day).as_str())
-                        .header("Cookie", format!("session={}", session_token).as_str());
-                    then.status(200).body(puzzle_input);
-                });
-                assert!(fetcher.get_puzzle_input(day).is_err());
-                mock.assert_hits(0);
-            }
+            let puzzle_input = random_puzzle();
+            let mock = server.mock(|when, then| {
+                when.method(GET)
+                    .path(remote_url_path(1).as_str())
+                    .header("Cookie", format!("session={}", session_token).as_str());
+                then.status(200).body(puzzle_input);
+            });
+            assert!(fetcher.fetch_puzzle_input(1).is_err());
+            mock.assert_hits(0);
         }
     }
 
@@ -350,7 +324,7 @@ mod tests {
                 then.status(400)
                     .body("Puzzle inputs differ by user.  Please log in to get your puzzle input.");
             });
-            assert!(fetcher.get_puzzle_input(day).is_err());
+            assert!(fetcher.fetch_puzzle_input(day).is_err());
             mock.assert();
         }
     }
@@ -381,7 +355,7 @@ mod tests {
                            The calendar countdown is synchronized with the server time; \
                            the link will be enabled on the calendar the instant this puzzle becomes available.");
             });
-            assert!(fetcher.get_puzzle_input(day).is_err());
+            assert!(fetcher.fetch_puzzle_input(day).is_err());
             mock.assert();
         }
     }
