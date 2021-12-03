@@ -10,7 +10,9 @@ impl AbstractPuzzle for Puzzle01 {
     }
 
     fn solve_part_1(&self) -> String {
-        let depths = self.input.lines()
+        let depths = self
+            .input
+            .lines()
             .map(|line| line.parse::<i32>().unwrap())
             .collect::<Vec<i32>>();
         let mut count = 0;
@@ -23,7 +25,9 @@ impl AbstractPuzzle for Puzzle01 {
     }
 
     fn solve_part_2(&self) -> String {
-        let depths = self.input.lines()
+        let depths = self
+            .input
+            .lines()
             .map(|line| line.parse::<i32>().unwrap())
             .collect::<Vec<i32>>();
         let mut count = 0;
@@ -42,7 +46,7 @@ impl AbstractPuzzle for Puzzle01 {
 impl Puzzle01 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         Box::new(Puzzle01 {
-            input: input.to_string()
+            input: input.to_string(),
         })
     }
 }
@@ -50,12 +54,14 @@ impl Puzzle01 {
 #[cfg(test)]
 mod tests {
     use crate::puzzle01::Puzzle01;
-    use std::path::PathBuf;
     use std::fs;
+    use std::path::PathBuf;
 
     #[test]
     fn test_part_1_example_1() {
-        let input = vec!["199", "200", "208", "210", "200", "207", "240", "269", "260", "263"];
+        let input = vec![
+            "199", "200", "208", "210", "200", "207", "240", "269", "260", "263",
+        ];
         let puzzle = Puzzle01::create(&input.join("\n"));
         assert_eq!(puzzle.solve_part_1(), "7");
     }
@@ -69,7 +75,9 @@ mod tests {
 
     #[test]
     fn test_part_2_example_1() {
-        let input = vec!["199", "200", "208", "210", "200", "207", "240", "269", "260", "263"];
+        let input = vec![
+            "199", "200", "208", "210", "200", "207", "240", "269", "260", "263",
+        ];
         let puzzle = Puzzle01::create(&input.join("\n"));
         assert_eq!(puzzle.solve_part_2(), "5");
     }

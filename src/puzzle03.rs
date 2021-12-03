@@ -23,7 +23,7 @@ impl AbstractPuzzle for Puzzle03 {
                 epsilon <<= 1;
             }
         }
-            (gamma * epsilon).to_string()
+        (gamma * epsilon).to_string()
     }
 
     fn solve_part_2(&self) -> String {
@@ -55,18 +55,17 @@ impl AbstractPuzzle for Puzzle03 {
         let co2_rating = usize::from_str_radix(co2_values[0], 2).unwrap();
         (oxygen_rating * co2_rating).to_string()
     }
-
 }
 
 impl Puzzle03 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         Box::new(Puzzle03 {
-            input: input.to_string()
+            input: input.to_string(),
         })
     }
 }
 
-fn more_zeros(report: &Vec<&str>, position: usize) -> bool {
+fn more_zeros(report: &[&str], position: usize) -> bool {
     let mut count = 0;
     for line in report {
         if line.chars().nth(position).unwrap() == '0' {
@@ -79,24 +78,14 @@ fn more_zeros(report: &Vec<&str>, position: usize) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::puzzle03::Puzzle03;
-    use std::path::PathBuf;
     use std::fs;
+    use std::path::PathBuf;
 
     #[test]
     fn test_part_1_example_1() {
         let input = vec![
-            "00100",
-            "11110",
-            "10110",
-            "10111",
-            "10101",
-            "01111",
-            "00111",
-            "11100",
-            "10000",
-            "11001",
-            "00010",
-            "01010"
+            "00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000",
+            "11001", "00010", "01010",
         ];
         let puzzle = Puzzle03::create(&input.join("\n"));
         assert_eq!(puzzle.solve_part_1(), "198");
@@ -112,18 +101,8 @@ mod tests {
     #[test]
     fn test_part_2_example_1() {
         let input = vec![
-            "00100",
-            "11110",
-            "10110",
-            "10111",
-            "10101",
-            "01111",
-            "00111",
-            "11100",
-            "10000",
-            "11001",
-            "00010",
-            "01010"
+            "00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000",
+            "11001", "00010", "01010",
         ];
         let puzzle = Puzzle03::create(&input.join("\n"));
         assert_eq!(puzzle.solve_part_2(), "230");

@@ -49,7 +49,7 @@ impl AbstractPuzzle for Puzzle02 {
 impl Puzzle02 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         Box::new(Puzzle02 {
-            input: input.to_string()
+            input: input.to_string(),
         })
     }
 }
@@ -57,8 +57,8 @@ impl Puzzle02 {
 #[cfg(test)]
 mod tests {
     use crate::puzzle02::Puzzle02;
-    use std::path::PathBuf;
     use std::fs;
+    use std::path::PathBuf;
 
     #[test]
     fn test_part_1_example_1() {
@@ -68,7 +68,7 @@ mod tests {
             "forward 8",
             "up 3",
             "down 8",
-            "forward 2"
+            "forward 2",
         ];
         let puzzle = Puzzle02::create(&input.join("\n"));
         assert_eq!(puzzle.solve_part_1(), "150");
@@ -89,7 +89,7 @@ mod tests {
             "forward 8",
             "up 3",
             "down 8",
-            "forward 2"
+            "forward 2",
         ];
         let puzzle = Puzzle02::create(&input.join("\n"));
         assert_eq!(puzzle.solve_part_2(), "900");

@@ -1,6 +1,6 @@
 use std::fs;
 use std::ops::Not;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 
 use reqwest::StatusCode;
@@ -34,13 +34,17 @@ impl PuzzleInputFetcher {
         PuzzleInputFetcher::create_custom(
             "https://adventofcode.com",
             Path::new("puzzle"),
-            Path::new("cookie.txt"))
+            Path::new("cookie.txt"),
+        )
     }
 
     // Creates a PuzzleInputFetcher using the with a specified base url, puzzle input path, and
     // session token path. Used only for testing.
-    pub fn create_custom(base_url: &str, input_path: &Path, session_token_path: &Path)
-        -> PuzzleInputFetcher {
+    pub fn create_custom(
+        base_url: &str,
+        input_path: &Path,
+        session_token_path: &Path,
+    ) -> PuzzleInputFetcher {
         let mut is_input_set = Vec::with_capacity(25);
         (0..25).for_each(|_| is_input_set.push(Arc::new(RwLock::new(false))));
         PuzzleInputFetcher {
@@ -67,7 +71,7 @@ impl PuzzleInputFetcher {
                     // Puzzle is in our local store
                     self.inputs[index].push_str(local_input.as_str());
                     *is_input_set = true;
-                    return Ok(self.inputs[index].as_str())
+                    return Ok(self.inputs[index].as_str());
                 }
                 // Puzzle is not in our local store
                 if self.is_session_token_set.read().unwrap().not() {
@@ -84,7 +88,7 @@ impl PuzzleInputFetcher {
                 self.store_puzzle_input_locally(day, remote_input.as_str());
                 self.inputs[index].push_str(remote_input.as_str());
                 *is_input_set = true;
-                return Ok(self.inputs[index].as_str())
+                return Ok(self.inputs[index].as_str());
             }
         }
         Ok(self.inputs[index].as_str())
@@ -107,17 +111,26 @@ impl PuzzleInputFetcher {
     fn fetch_remote_puzzle_input(&self, day: u8, session_token: &str) -> Result<String> {
         let client = reqwest::blocking::Client::new();
         let path = format!("{}{}", self.base_url, remote_url_path(day));
-        let response = client.get(&path)
+        let response = client
+            .get(&path)
             .header("Cookie", format!("session={}", session_token))
             .send()
             .map_err(|e| format!("Failed to fetch remote puzzle input for day {}: {}", day, e))?;
         if response.status() != StatusCode::OK {
-            Err(format!("Failed to fetch remote puzzle input for day {}: \
-                         Got status code = {}", day, response.status()))
+            Err(format!(
+                "Failed to fetch remote puzzle input for day {}: \
+                         Got status code = {}",
+                day,
+                response.status()
+            ))
         } else {
-            response.text()
-                .map_err(|e| format!("Failed to fetch remote puzzle input for day {}: \
-                                            Failed to read body as text: {}", day, e))
+            response.text().map_err(|e| {
+                format!(
+                    "Failed to fetch remote puzzle input for day {}: \
+                                            Failed to read body as text: {}",
+                    day, e
+                )
+            })
         }
     }
 
@@ -125,14 +138,23 @@ impl PuzzleInputFetcher {
     fn fetch_session_token(&self) -> Result<String> {
         let session_token = fs::read_to_string(self.session_token_path.to_path_buf())
             .map(|s| s.trim().to_string())
-            .map_err(|e| format!("Failed to fetch session token from {}: {}",
-                                 path_to_str(&self.session_token_path), e))?;
+            .map_err(|e| {
+                format!(
+                    "Failed to fetch session token from {}: {}",
+                    path_to_str(&self.session_token_path),
+                    e
+                )
+            })?;
         let has_right_length = session_token.len() == 96;
-        let has_right_charset = session_token.chars()
-            .all(|x| (x >= '0' && x <= '9') || (x >= 'a' && x <= 'z'));
+        let has_right_charset = session_token
+            .chars()
+            .all(|x| ('0'..='9').contains(&x) || ('a'..='z').contains(&x));
         if !has_right_length || !has_right_charset {
-            Err(format!("Session token is not in the right format. \
-                         Expected 96 lowercase hex digits. Got: {}", session_token))
+            Err(format!(
+                "Session token is not in the right format. \
+                         Expected 96 lowercase hex digits. Got: {}",
+                session_token
+            ))
         } else {
             Ok(session_token)
         }
@@ -151,14 +173,14 @@ type Result<T> = std::result::Result<T, String>;
 
 #[cfg(test)]
 mod tests {
-    use crate::puzzle_input_fetcher::{PuzzleInputFetcher, remote_url_path};
+    use crate::puzzle_input_fetcher::{remote_url_path, PuzzleInputFetcher};
 
+    use httpmock::Method::GET;
+    use httpmock::MockServer;
     use rand::Rng;
     use std::fs::File;
     use std::io::Write;
     use tempfile::{tempdir, NamedTempFile};
-    use httpmock::Method::GET;
-    use httpmock::MockServer;
 
     //noinspection DuplicatedCode
     #[test]
@@ -171,7 +193,8 @@ mod tests {
         let mut fetcher = PuzzleInputFetcher::create_custom(
             base_url,
             puzzle_store_dir.path(),
-            session_token_path.path());
+            session_token_path.path(),
+        );
         for day in 1..26 {
             let puzzle_input = random_puzzle();
             let puzzle_file_path = puzzle_store_dir.path().join(day.to_string());
@@ -196,19 +219,21 @@ mod tests {
         let puzzle_store_dir = tempdir().unwrap();
         let mut session_token_path = NamedTempFile::new().unwrap();
         let session_token = random_session_token();
-        session_token_path.write_all(session_token.as_bytes()).unwrap();
+        session_token_path
+            .write_all(session_token.as_bytes())
+            .unwrap();
         let mut fetcher = PuzzleInputFetcher::create_custom(
             base_url,
             puzzle_store_dir.path(),
-            session_token_path.path());
+            session_token_path.path(),
+        );
         for day in 1..26 {
             let puzzle_input = random_puzzle();
             let mock = server.mock(|when, then| {
                 when.method(GET)
                     .path(remote_url_path(day).as_str())
                     .header("Cookie", format!("session={}", session_token).as_str());
-                then.status(200)
-                    .body(&puzzle_input);
+                then.status(200).body(&puzzle_input);
             });
             assert_eq!(fetcher.get_puzzle_input(day).unwrap(), puzzle_input);
             mock.assert();
@@ -223,11 +248,14 @@ mod tests {
         let puzzle_store_dir = tempdir().unwrap();
         let mut session_token_path = NamedTempFile::new().unwrap();
         let session_token = random_session_token();
-        session_token_path.write_all(session_token.as_bytes()).unwrap();
+        session_token_path
+            .write_all(session_token.as_bytes())
+            .unwrap();
         let mut fetcher = PuzzleInputFetcher::create_custom(
             base_url,
             puzzle_store_dir.path(),
-            session_token_path.path());
+            session_token_path.path(),
+        );
         for day in 1..26 {
             let mock = server.mock(|when, then| {
                 when.method(GET)
@@ -250,11 +278,11 @@ mod tests {
         let mut fetcher = PuzzleInputFetcher::create_custom(
             base_url,
             puzzle_store_dir.path(),
-            session_token_path.path());
+            session_token_path.path(),
+        );
         for day in 1..26 {
             let mock = server.mock(|when, then| {
-                when.method(GET)
-                    .path(remote_url_path(day).as_str());
+                when.method(GET).path(remote_url_path(day).as_str());
                 then.status(400)
                     .body("Puzzle inputs differ by user.  Please log in to get your puzzle input.");
             });
@@ -272,26 +300,28 @@ mod tests {
         let mut truncated_token = random_session_token();
         truncated_token.truncate(95);
         let session_tokens: Vec<String> = vec![
-            truncated_token, // session token too short
+            truncated_token,              // session token too short
             random_session_token() + "a", // session token too long
-            "X".repeat(96), // session token has invalid characters
-            String::new(), // session token is the empty string
+            "X".repeat(96),               // session token has invalid characters
+            String::new(),                // session token is the empty string
         ];
         for session_token in session_tokens {
             let mut session_token_path = NamedTempFile::new().unwrap();
-            session_token_path.write_all(session_token.as_bytes()).unwrap();
+            session_token_path
+                .write_all(session_token.as_bytes())
+                .unwrap();
             let mut fetcher = PuzzleInputFetcher::create_custom(
                 base_url,
                 puzzle_store_dir.path(),
-                session_token_path.path());
+                session_token_path.path(),
+            );
             for day in 1..26 {
                 let puzzle_input = random_puzzle();
                 let mock = server.mock(|when, then| {
                     when.method(GET)
                         .path(remote_url_path(day).as_str())
                         .header("Cookie", format!("session={}", session_token).as_str());
-                    then.status(200)
-                        .body(puzzle_input);
+                    then.status(200).body(puzzle_input);
                 });
                 assert!(fetcher.get_puzzle_input(day).is_err());
                 mock.assert_hits(0);
@@ -307,11 +337,14 @@ mod tests {
         let puzzle_store_dir = tempdir().unwrap();
         let mut session_token_path = NamedTempFile::new().unwrap();
         let session_token = random_session_token();
-        session_token_path.write_all(session_token.as_bytes()).unwrap();
+        session_token_path
+            .write_all(session_token.as_bytes())
+            .unwrap();
         let mut fetcher = PuzzleInputFetcher::create_custom(
             base_url,
             puzzle_store_dir.path(),
-            session_token_path.path());
+            session_token_path.path(),
+        );
         for day in 1..26 {
             let mock = server.mock(|when, then| {
                 when.method(GET)
@@ -333,11 +366,14 @@ mod tests {
         let puzzle_store_dir = tempdir().unwrap();
         let mut session_token_path = NamedTempFile::new().unwrap();
         let session_token = random_session_token();
-        session_token_path.write_all(session_token.as_bytes()).unwrap();
+        session_token_path
+            .write_all(session_token.as_bytes())
+            .unwrap();
         let mut fetcher = PuzzleInputFetcher::create_custom(
             base_url,
             puzzle_store_dir.path(),
-            session_token_path.path());
+            session_token_path.path(),
+        );
         for day in 1..26 {
             let mock = server.mock(|when, then| {
                 when.method(GET)
@@ -356,15 +392,16 @@ mod tests {
     fn random_puzzle() -> String {
         // Puzzle inputs tend to contain a wide variety of ASCII characters including line feed.
         // They can also be fairly large.
-        let charset = format!("{}{}{}{}{}{}{}{}",
-            "\n", // ASCII code 10 (line feed)
-            " !\"#$%&'()*+,-./", // ASCII codes 32-47 (symbols)
-            "0123456789", // ASCII codes 48-57 (digits)
-            ":;<=>?@", // ASCII codes 58-64 (symbols)
+        let charset = format!(
+            "{}{}{}{}{}{}{}{}",
+            "\n",                         // ASCII code 10 (line feed)
+            " !\"#$%&'()*+,-./",          // ASCII codes 32-47 (symbols)
+            "0123456789",                 // ASCII codes 48-57 (digits)
+            ":;<=>?@",                    // ASCII codes 58-64 (symbols)
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ", // ASCII codes 65-90 (uppercase letters)
-            "[\\]^_`", // ASCII codes 91-96 (symbols)
+            "[\\]^_`",                    // ASCII codes 91-96 (symbols)
             "abcdefghijklmnopqrstuvwxyz", // ASCII codes 97-122 (lowercase letters)
-            "{|}~" // ASCII codes 123-126 (symbols)
+            "{|}~"                        // ASCII codes 123-126 (symbols)
         );
         random_string(charset.as_str(), 65535)
     }
@@ -376,9 +413,11 @@ mod tests {
 
     fn random_string(charset: &str, length: usize) -> String {
         let mut rng = rand::thread_rng();
-        (0..length).map(|_| {
-            let i = rng.gen_range(0..charset.len());
-            charset.chars().nth(i).unwrap()
-        }).collect()
+        (0..length)
+            .map(|_| {
+                let i = rng.gen_range(0..charset.len());
+                charset.chars().nth(i).unwrap()
+            })
+            .collect()
     }
 }
