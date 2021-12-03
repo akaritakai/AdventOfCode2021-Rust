@@ -118,16 +118,14 @@ impl PuzzleInputFetcher {
             .map_err(|e| format!("Failed to fetch remote puzzle input for day {}: {}", day, e))?;
         if response.status() != StatusCode::OK {
             Err(format!(
-                "Failed to fetch remote puzzle input for day {}: \
-                         Got status code = {}",
+                "Failed to fetch remote puzzle input for day {}: Got status code = {}",
                 day,
                 response.status()
             ))
         } else {
             response.text().map_err(|e| {
                 format!(
-                    "Failed to fetch remote puzzle input for day {}: \
-                                            Failed to read body as text: {}",
+                    "Failed to fetch remote puzzle input for day {}: Failed to read body as text: {}",
                     day, e
                 )
             })
@@ -151,8 +149,7 @@ impl PuzzleInputFetcher {
             .all(|x| ('0'..='9').contains(&x) || ('a'..='z').contains(&x));
         if !has_right_length || !has_right_charset {
             Err(format!(
-                "Session token is not in the right format. \
-                         Expected 96 lowercase hex digits. Got: {}",
+                "Session token is not in the right format. Expected 96 lowercase hex digits. Got: {}",
                 session_token
             ))
         } else {

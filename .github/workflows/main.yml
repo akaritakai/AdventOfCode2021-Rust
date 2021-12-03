@@ -31,10 +31,7 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
-      - name: Checck coverage
+      - name: Check coverage
         uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: 0.18.5
-          args: -- --test-threads 1
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
