@@ -16,7 +16,7 @@ impl AbstractPuzzle for Puzzle05 {
         let segments = self
             .input
             .lines()
-            .map(|line| LineSegment::parse(line))
+            .map(LineSegment::parse)
             .collect::<Vec<LineSegment>>();
         let mut points: HashMap<(i32, i32), usize> = HashMap::new();
         for segment in segments {
@@ -34,7 +34,7 @@ impl AbstractPuzzle for Puzzle05 {
         let segments = self
             .input
             .lines()
-            .map(|line| LineSegment::parse(line))
+            .map(LineSegment::parse)
             .collect::<Vec<LineSegment>>();
         let mut points: HashMap<(i32, i32), usize> = HashMap::new();
         for segment in segments {
