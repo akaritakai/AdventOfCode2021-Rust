@@ -4,6 +4,7 @@ use crate::puzzle02::Puzzle02;
 use crate::puzzle03::Puzzle03;
 use crate::puzzle04::Puzzle04;
 use crate::puzzle05::Puzzle05;
+use crate::puzzle06::Puzzle06;
 use crate::puzzle_input_fetcher::PuzzleInputFetcher;
 
 mod puzzle;
@@ -12,6 +13,7 @@ mod puzzle02;
 mod puzzle03;
 mod puzzle04;
 mod puzzle05;
+mod puzzle06;
 mod puzzle_input_fetcher;
 
 fn main() {
@@ -22,6 +24,7 @@ fn main() {
         Puzzle03::create(fetcher.fetch_puzzle_input(3).unwrap()),
         Puzzle04::create(fetcher.fetch_puzzle_input(4).unwrap()),
         Puzzle05::create(fetcher.fetch_puzzle_input(5).unwrap()),
+        Puzzle06::create(fetcher.fetch_puzzle_input(6).unwrap()),
     ];
     for puzzle in puzzles.iter() {
         let day = format!("{:02}", puzzle.get_day());
