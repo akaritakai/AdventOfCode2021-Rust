@@ -130,12 +130,8 @@ impl BingoBoard {
             let mut row = true;
             let mut col = true;
             for j in 0..5 {
-                if !self.marks[i][j] {
-                    row = false;
-                }
-                if !self.marks[j][i] {
-                    col = false;
-                }
+                row &= self.marks[i][j];
+                col &= self.marks[j][i];
             }
             if row || col {
                 self.won = true;
