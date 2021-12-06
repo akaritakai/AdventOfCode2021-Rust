@@ -35,9 +35,7 @@ fn simulate(input: &str, days: usize) -> u64 {
         .for_each(|x| fish[x] += 1);
     for _ in 0..days {
         let new_fish = fish[0];
-        for i in 0..8 {
-            fish[i] = fish[i + 1];
-        }
+        fish.rotate_left(1);
         fish[6] += new_fish;
         fish[8] = new_fish;
     }
