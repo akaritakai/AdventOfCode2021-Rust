@@ -33,11 +33,10 @@ fn simulate(input: &str, days: usize) -> u64 {
         .split(',')
         .map(|x| x.parse::<usize>().unwrap())
         .for_each(|x| fish[x] += 1);
+    let mut base = 0;
     for _ in 0..days {
-        let new_fish = fish[0];
-        fish.rotate_left(1);
-        fish[6] += new_fish;
-        fish[8] = new_fish;
+        fish[(base + 7) % 9] += fish[base];
+        base = (base + 1) % 9;
     }
     fish.iter().sum()
 }
