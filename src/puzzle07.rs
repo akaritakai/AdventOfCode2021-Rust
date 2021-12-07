@@ -44,7 +44,8 @@ impl Puzzle07 {
             .split(',')
             .map(|x| x.parse::<i32>().unwrap())
             .collect::<Vec<i32>>();
-        positions.sort_unstable();
+        let length = positions.len();
+        let _ = positions.select_nth_unstable(length / 2);
         Box::new(Puzzle07 { positions })
     }
 }
