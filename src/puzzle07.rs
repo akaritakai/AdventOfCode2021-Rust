@@ -12,16 +12,24 @@ impl AbstractPuzzle for Puzzle07 {
 
     fn solve_part_1(&self) -> String {
         let median = self.positions[self.positions.len() / 2];
-        self.positions.iter().map(|&x| (x - median).abs()).sum::<i32>().to_string()
+        self.positions
+            .iter()
+            .map(|&x| (x - median).abs())
+            .sum::<i32>()
+            .to_string()
     }
 
     fn solve_part_2(&self) -> String {
         let mean = (self.positions.iter().sum::<i32>() as f64) / (self.positions.len() as f64);
-        let floor_cost = self.positions.iter()
+        let floor_cost = self
+            .positions
+            .iter()
             .map(|&x| (x as f64 - mean.floor()).abs() as i32)
             .map(|x| x * (x + 1) / 2)
             .sum::<i32>();
-        let ceil_cost = self.positions.iter()
+        let ceil_cost = self
+            .positions
+            .iter()
             .map(|&x| (x as f64 - mean.ceil()).abs() as i32)
             .map(|x| x * (x + 1) / 2)
             .sum::<i32>();
