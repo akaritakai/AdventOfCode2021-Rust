@@ -12,29 +12,19 @@ impl AbstractPuzzle for Puzzle07 {
 
     fn solve_part_1(&self) -> String {
         let median = self.positions[self.positions.len() / 2];
-        let mut cost = 0;
-        for position in self.positions.iter() {
-            cost += (position - median).abs();
-        }
-        cost.to_string()
+        self.positions.iter().map(|&x| (x - median).abs()).sum::<i32>().to_string()
     }
 
     fn solve_part_2(&self) -> String {
-        let mut mean = 0 as f64;
-        for position in self.positions.iter() {
-            mean += *position as f64;
-        }
-        mean /= self.positions.len() as f64;
-        let mut floor_cost = 0;
-        let mut ceil_cost = 0;
-        for position in self.positions.iter() {
-            let floor = mean.floor() as i32;
-            let floor_distance = (position - floor).abs();
-            floor_cost += floor_distance * (floor_distance + 1) / 2;
-            let ceil = mean.ceil() as i32;
-            let ceil_distance = (position - ceil).abs();
-            ceil_cost += ceil_distance * (ceil_distance + 1) / 2;
-        }
+        let mean = (self.positions.iter().sum::<i32>() as f64) / (self.positions.len() as f64);
+        let floor_cost = self.positions.iter()
+            .map(|&x| (x as f64 - mean.floor()).abs() as i32)
+            .map(|x| x * (x + 1) / 2)
+            .sum::<i32>();
+        let ceil_cost = self.positions.iter()
+            .map(|&x| (x as f64 - mean.ceil()).abs() as i32)
+            .map(|x| x * (x + 1) / 2)
+            .sum::<i32>();
         min(floor_cost, ceil_cost).to_string()
     }
 }
