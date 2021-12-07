@@ -4,7 +4,7 @@ use regex::Regex;
 use std::collections::HashMap;
 
 pub struct Puzzle05 {
-    input: String,
+    segments: Vec<LineSegment>
 }
 
 impl AbstractPuzzle for Puzzle05 {
@@ -13,13 +13,8 @@ impl AbstractPuzzle for Puzzle05 {
     }
 
     fn solve_part_1(&self) -> String {
-        let segments = self
-            .input
-            .lines()
-            .map(LineSegment::parse)
-            .collect::<Vec<LineSegment>>();
         let mut points: HashMap<(i32, i32), usize> = HashMap::new();
-        for segment in segments {
+        for segment in &self.segments {
             if segment.is_vertical_or_horizontal() {
                 for point in segment.points() {
                     points.insert(point, points.get(&point).unwrap_or(&0) + 1);
@@ -31,13 +26,8 @@ impl AbstractPuzzle for Puzzle05 {
     }
 
     fn solve_part_2(&self) -> String {
-        let segments = self
-            .input
-            .lines()
-            .map(LineSegment::parse)
-            .collect::<Vec<LineSegment>>();
         let mut points: HashMap<(i32, i32), usize> = HashMap::new();
-        for segment in segments {
+        for segment in &self.segments {
             for point in segment.points() {
                 points.insert(point, points.get(&point).unwrap_or(&0) + 1);
             }
@@ -50,7 +40,7 @@ impl AbstractPuzzle for Puzzle05 {
 impl Puzzle05 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         Box::new(Puzzle05 {
-            input: input.to_string(),
+            segments: input.lines().map(LineSegment::parse).collect::<Vec<LineSegment>>()
         })
     }
 }
