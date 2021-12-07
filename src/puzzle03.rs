@@ -60,15 +60,12 @@ impl Puzzle03 {
 }
 
 fn most_common_bit(report: &[String], position: usize) -> char {
-    let mut counts = [0; 2];
-    for line in report {
-        match line.chars().nth(position) {
-            Some('0') => counts[0] += 1,
-            Some('1') => counts[1] += 1,
-            _ => panic!("Invalid character"),
-        }
-    }
-    if counts[0] > counts[1] {
+    if report
+        .iter()
+        .filter(|line| line.chars().nth(position).unwrap() == '0')
+        .count()
+        > report.len() / 2
+    {
         '0'
     } else {
         '1'
