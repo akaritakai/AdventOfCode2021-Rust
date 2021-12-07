@@ -4,7 +4,7 @@ use regex::Regex;
 use std::collections::HashMap;
 
 pub struct Puzzle05 {
-    segments: Vec<LineSegment>
+    segments: Vec<LineSegment>,
 }
 
 impl AbstractPuzzle for Puzzle05 {
@@ -40,7 +40,10 @@ impl AbstractPuzzle for Puzzle05 {
 impl Puzzle05 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         Box::new(Puzzle05 {
-            segments: input.lines().map(LineSegment::parse).collect::<Vec<LineSegment>>()
+            segments: input
+                .lines()
+                .map(LineSegment::parse)
+                .collect::<Vec<LineSegment>>(),
         })
     }
 }

@@ -1,5 +1,5 @@
-use std::cmp::min;
 use crate::puzzle::AbstractPuzzle;
+use std::cmp::min;
 
 pub struct Puzzle07 {
     positions: Vec<i32>,
@@ -21,7 +21,7 @@ impl AbstractPuzzle for Puzzle07 {
             }
             min_cost = min(min_cost, cost);
         }
-        return min_cost.to_string();
+        min_cost.to_string()
     }
 
     fn solve_part_2(&self) -> String {
@@ -34,13 +34,14 @@ impl AbstractPuzzle for Puzzle07 {
             }
             min_cost = min(min_cost, cost);
         }
-        return min_cost.to_string();
+        min_cost.to_string()
     }
 }
 
 impl Puzzle07 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
-        let positions = input.trim()
+        let positions = input
+            .trim()
             .split(',')
             .map(|x| x.parse::<i32>().unwrap())
             .collect::<Vec<i32>>();
@@ -49,7 +50,7 @@ impl Puzzle07 {
         Box::new(Puzzle07 {
             positions,
             min_position,
-            max_position
+            max_position,
         })
     }
 }
