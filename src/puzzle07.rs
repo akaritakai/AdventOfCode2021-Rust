@@ -53,6 +53,7 @@ impl Puzzle07 {
 #[cfg(test)]
 mod tests {
     use crate::puzzle07::Puzzle07;
+    use std::cmp::min;
     use std::fs;
     use std::path::PathBuf;
 
@@ -61,6 +62,35 @@ mod tests {
         let input = "16,1,2,0,4,2,7,1,2,14";
         let puzzle = Puzzle07::create(&input);
         assert_eq!(puzzle.solve_part_1(), "37");
+    }
+
+    #[test]
+    fn test_part_1_example_2() {
+        // We test all input sizes from 1 to 200 and generate a random number (0-2000) for each
+        for size in 1..201 {
+            let positions = (0..size)
+                .map(|_| (rand::random::<u32>() % 2001) as i32)
+                .collect::<Vec<i32>>();
+
+            // Use the naive solution for part 1 as a sanity check
+            let mut min_cost = i32::MAX;
+            for i in 0..2001 {
+                let mut cost = 0;
+                for &x in &positions {
+                    cost += (x - i).abs();
+                }
+                min_cost = min(cost, min_cost);
+            }
+
+            let puzzle = Puzzle07::create(
+                &positions
+                    .iter()
+                    .map(|&x| x.to_string())
+                    .collect::<Vec<String>>()
+                    .join(","),
+            );
+            assert_eq!(puzzle.solve_part_1(), min_cost.to_string());
+        }
     }
 
     #[test]
