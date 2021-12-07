@@ -1,5 +1,7 @@
 use std::fs;
+use std::ops::Not;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 
 use reqwest::StatusCode;
 
@@ -13,8 +15,14 @@ pub struct PuzzleInputFetcher {
     // The location where the session token is stored (by default 'cookie.txt')
     session_token_path: PathBuf,
 
+    // Per-day lock for loading the puzzle input into our input cache
+    is_input_set: Vec<Arc<RwLock<bool>>>,
+
     // The input cache that stores our puzzles
     inputs: Vec<String>,
+
+    // Lock for loading the session token into our session token cache
+    is_session_token_set: Arc<RwLock<bool>>,
 
     // The session token cache
     session_token: String,
@@ -37,11 +45,15 @@ impl PuzzleInputFetcher {
         input_path: &Path,
         session_token_path: &Path,
     ) -> PuzzleInputFetcher {
+        let mut is_input_set = Vec::with_capacity(25);
+        (0..25).for_each(|_| is_input_set.push(Arc::new(RwLock::new(false))));
         PuzzleInputFetcher {
             base_url: base_url.to_string(),
             input_path: input_path.to_path_buf(),
+            is_input_set,
             inputs: vec![String::new(); 25],
             session_token_path: session_token_path.to_path_buf(),
+            is_session_token_set: Arc::new(RwLock::new(false)),
             session_token: String::new(),
         }
     }
@@ -51,21 +63,33 @@ impl PuzzleInputFetcher {
     // (the site itself).
     pub fn fetch_puzzle_input(&mut self, day: u8) -> Result<&str> {
         let index = (day - 1) as usize;
-        if self.inputs[index].is_empty() {
+        if self.is_input_set[index].read().unwrap().not() {
             // Puzzle is not in our cache
-            if let Ok(local_input) = self.fetch_local_puzzle_input(day) {
-                // Puzzle is in our local store
-                self.inputs[index] = local_input;
+            let mut is_input_set = self.is_input_set[index].write().unwrap();
+            if is_input_set.not() {
+                if let Ok(local_input) = self.fetch_local_puzzle_input(day) {
+                    // Puzzle is in our local store
+                    self.inputs[index].push_str(&local_input);
+                    *is_input_set = true;
+                    return Ok(&self.inputs[index]);
+                }
+                // Puzzle is not in our local store
+                if self.is_session_token_set.read().unwrap().not() {
+                    // Session token is not cached
+                    let mut is_session_token_set = self.is_session_token_set.write().unwrap();
+                    if is_session_token_set.not() {
+                        let session_token = self.fetch_session_token()?;
+                        self.session_token.push_str(session_token.trim());
+                        *is_session_token_set = true;
+                    }
+                }
+                let session_token = &self.session_token;
+                let remote_input = self.fetch_remote_puzzle_input(day, session_token)?;
+                self.store_puzzle_input_locally(day, &remote_input);
+                self.inputs[index].push_str(&remote_input);
+                *is_input_set = true;
                 return Ok(&self.inputs[index]);
             }
-            // Puzzle is not in our local store
-            if self.session_token.is_empty() {
-                // Session token is not cached
-                self.session_token = self.fetch_session_token()?.trim().to_string();
-            }
-            let remote_input = self.fetch_remote_puzzle_input(day, &self.session_token)?;
-            self.store_puzzle_input_locally(day, &remote_input);
-            self.inputs[index] = remote_input;
         }
         Ok(&self.inputs[index])
     }
@@ -288,15 +312,17 @@ mod tests {
                 puzzle_store_dir.path(),
                 session_token_path.path(),
             );
-            let puzzle_input = random_puzzle();
-            let mock = server.mock(|when, then| {
-                when.method(GET)
-                    .path(remote_url_path(1).as_str())
-                    .header("Cookie", format!("session={}", session_token).as_str());
-                then.status(200).body(puzzle_input);
-            });
-            assert!(fetcher.fetch_puzzle_input(1).is_err());
-            mock.assert_hits(0);
+            for day in 1..26 {
+                let puzzle_input = random_puzzle();
+                let mock = server.mock(|when, then| {
+                    when.method(GET)
+                        .path(remote_url_path(day).as_str())
+                        .header("Cookie", format!("session={}", session_token).as_str());
+                    then.status(200).body(puzzle_input);
+                });
+                assert!(fetcher.fetch_puzzle_input(day).is_err());
+                mock.assert_hits(0);
+            }
         }
     }
 

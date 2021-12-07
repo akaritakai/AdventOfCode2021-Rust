@@ -9,21 +9,6 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - name: Check build 
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --release
-      - name: Run build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
-      - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --release
       - name: Check fmt
         uses: actions-rs/cargo@v1
         with:
@@ -33,7 +18,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-      - name: Check coverage
+      - name: Build, test, and measure coverage
         uses: actions-rs/tarpaulin@v0.1
         with:
           args: --release
