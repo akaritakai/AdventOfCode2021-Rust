@@ -1,7 +1,8 @@
 use crate::puzzle::AbstractPuzzle;
 
 pub struct Puzzle03 {
-    input: String,
+    report: Vec<String>,
+    length: usize,
 }
 
 impl AbstractPuzzle for Puzzle03 {
@@ -10,12 +11,10 @@ impl AbstractPuzzle for Puzzle03 {
     }
 
     fn solve_part_1(&self) -> String {
-        let report = self.input.lines().collect::<Vec<&str>>();
-        let length = report[0].len();
         let mut gamma: u32 = 0;
         let mut epsilon: u32 = 0;
-        for i in 0..length {
-            if more_zeros(&report, i) {
+        for i in 0..self.length {
+            if most_common_bit(&self.report, i) == '0' {
                 gamma <<= 1;
                 epsilon = (epsilon << 1) | 1;
             } else {
@@ -27,52 +26,61 @@ impl AbstractPuzzle for Puzzle03 {
     }
 
     fn solve_part_2(&self) -> String {
-        let report = self.input.lines().collect::<Vec<&str>>();
-        let length = report[0].len();
-        let mut oxygen_values = report.clone();
-        for i in 0..length {
+        let mut oxygen_values = self.report.clone();
+        for i in 0..self.length {
             if oxygen_values.len() == 1 {
                 break;
             }
-            if more_zeros(&oxygen_values, i) {
-                oxygen_values.retain(|&line| line.chars().nth(i).unwrap() == '0');
-            } else {
-                oxygen_values.retain(|&line| line.chars().nth(i).unwrap() == '1');
-            }
+            let most_common_bit = most_common_bit(&oxygen_values, i);
+            oxygen_values.retain(|line| line.chars().nth(i).unwrap() == most_common_bit);
         }
-        let mut co2_values = report.clone();
-        for i in 0..length {
+        let mut co2_values = self.report.clone();
+        for i in 0..self.length {
             if co2_values.len() == 1 {
                 break;
             }
-            if more_zeros(&co2_values, i) {
-                co2_values.retain(|&line| line.chars().nth(i).unwrap() == '1');
-            } else {
-                co2_values.retain(|&line| line.chars().nth(i).unwrap() == '0');
-            }
+            let least_common_bit = least_common_bit(&co2_values, i);
+            co2_values.retain(|line| line.chars().nth(i).unwrap() == least_common_bit);
         }
-        let oxygen_rating = usize::from_str_radix(oxygen_values[0], 2).unwrap();
-        let co2_rating = usize::from_str_radix(co2_values[0], 2).unwrap();
+        let oxygen_rating = usize::from_str_radix(&*oxygen_values[0], 2).unwrap();
+        let co2_rating = usize::from_str_radix(&*co2_values[0], 2).unwrap();
         (oxygen_rating * co2_rating).to_string()
     }
 }
 
 impl Puzzle03 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
-        Box::new(Puzzle03 {
-            input: input.to_string(),
-        })
+        let report = input
+            .lines()
+            .map(|line| line.to_string())
+            .collect::<Vec<String>>();
+        let length = report[0].len();
+        Box::new(Puzzle03 { report, length })
     }
 }
 
-fn more_zeros(report: &[&str], position: usize) -> bool {
-    let mut count = 0;
+fn most_common_bit(report: &[String], position: usize) -> char {
+    let mut counts = [0; 2];
     for line in report {
-        if line.chars().nth(position).unwrap() == '0' {
-            count += 1;
+        match line.chars().nth(position) {
+            Some('0') => counts[0] += 1,
+            Some('1') => counts[1] += 1,
+            _ => panic!("Invalid character"),
         }
     }
-    count > report.len() / 2
+    if counts[0] > counts[1] {
+        '0'
+    } else {
+        '1'
+    }
+}
+
+fn least_common_bit(report: &[String], position: usize) -> char {
+    if most_common_bit(report, position) == '0' {
+        '1'
+    } else {
+        '0'
+    }
 }
 
 #[cfg(test)]
