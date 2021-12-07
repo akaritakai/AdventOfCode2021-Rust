@@ -1,7 +1,8 @@
 use crate::puzzle::AbstractPuzzle;
 
 pub struct Puzzle04 {
-    input: String,
+    numbers: Vec<u32>,
+    boards: Vec<BingoBoard>,
 }
 
 impl AbstractPuzzle for Puzzle04 {
@@ -10,12 +11,10 @@ impl AbstractPuzzle for Puzzle04 {
     }
 
     fn solve_part_1(&self) -> String {
-        let parsed_input = ParsedInput::parse(self.input.as_str());
-        let numbers = parsed_input.numbers;
-        let mut boards = parsed_input.boards;
-        for number in numbers {
+        let mut boards = self.boards.clone();
+        for number in self.numbers.iter() {
             for board in boards.iter_mut() {
-                board.add_number(number);
+                board.add_number(*number);
                 if board.won {
                     return board.score().to_string();
                 }
@@ -25,21 +24,12 @@ impl AbstractPuzzle for Puzzle04 {
     }
 
     fn solve_part_2(&self) -> String {
-        let parsed_input = ParsedInput::parse(self.input.as_str());
-        let numbers = parsed_input.numbers;
-        let mut boards = parsed_input.boards;
+        let mut boards = self.boards.clone();
         let length = boards.len();
-        for number in numbers {
+        for number in self.numbers.iter() {
             for i in 0..length {
-                boards[i].add_number(number);
-                let mut all_won = true;
-                for board in boards.iter() {
-                    if !board.won {
-                        all_won = false;
-                        break;
-                    }
-                }
-                if all_won {
+                boards[i].add_number(*number);
+                if boards.iter_mut().all(|board| board.won) {
                     return boards[i].score().to_string();
                 }
             }
@@ -50,19 +40,6 @@ impl AbstractPuzzle for Puzzle04 {
 
 impl Puzzle04 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
-        Box::new(Puzzle04 {
-            input: input.to_string(),
-        })
-    }
-}
-
-struct ParsedInput {
-    numbers: Vec<u32>,
-    boards: Vec<BingoBoard>,
-}
-
-impl ParsedInput {
-    fn parse(input: &str) -> ParsedInput {
         let mut lines = input.lines();
         let numbers = lines
             .next()
@@ -82,10 +59,11 @@ impl ParsedInput {
             .into_iter()
             .map(BingoBoard::new)
             .collect::<Vec<BingoBoard>>();
-        ParsedInput { numbers, boards }
+        Box::new(Puzzle04 { numbers, boards })
     }
 }
 
+#[derive(Clone)]
 struct BingoBoard {
     won: bool,
     last_number: u32,
