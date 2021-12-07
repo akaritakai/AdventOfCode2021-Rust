@@ -16,11 +16,11 @@ jobs:
       - name: Run build
         uses: actions-rs/cargo@v1
         with:
-          command: build
+          command: build --release
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: test --release
       - name: Check fmt
         uses: actions-rs/cargo@v1
         with:
@@ -30,8 +30,9 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
       - name: Check coverage
         uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: -- --release
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
