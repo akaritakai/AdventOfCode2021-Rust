@@ -2,7 +2,7 @@
 name = "aoc2021"
 version = "0.1.0"
 authors = ["Justin Kaufman <akaritakai@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 lazy_static = "1.4.0"
