@@ -57,108 +57,34 @@ struct Display {
 impl Display {
     fn decode(&self) -> usize {
         // We can deduce '1', '4', '7', and '8' by their length
-        let one = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 2)
-            .collect::<Vec<&String>>()[0];
-        let four = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 4)
-            .collect::<Vec<&String>>()[0];
-        let seven = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 3)
-            .collect::<Vec<&String>>()[0];
-        let eight = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 7)
-            .collect::<Vec<&String>>()[0];
+        let one = self.deduce_digit(|&x| x.len() == 2);
+        let four = self.deduce_digit(|&x| x.len() == 4);
+        let seven = self.deduce_digit(|&x| x.len() == 3);
+        let eight = self.deduce_digit(|&x| x.len() == 7);
         // We can deduce '6' as it is the only number to have length 6 and share 1 value in common with '1'
         let six = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 6)
-            .filter(|x| one.chars().filter(|&y| x.contains(y)).count() == 1)
-            .collect::<Vec<&String>>()[0];
+            .deduce_digit(|&x| x.len() == 6 && one.chars().filter(|&y| x.contains(y)).count() == 1);
         // We can deduce f as the intersection of '6' and '1'
-        let f = one
-            .chars()
-            .filter(|&x| six.contains(x))
-            .collect::<String>()
-            .chars()
-            .next()
-            .unwrap();
+        let f = deduce_segment(&one, |&x| six.contains(x));
         // We can deduce c as '1' set minus f
-        let c = one
-            .chars()
-            .filter(|x| x != &f)
-            .collect::<String>()
-            .chars()
-            .next()
-            .unwrap();
+        let c = deduce_segment(&one, |&x| x != f);
         // We can deduce '3' as it is the only number to have length 5 and contain both c and f
-        let three = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 5 && x.contains(c) && x.contains(f))
-            .collect::<Vec<&String>>()[0];
+        let three = self.deduce_digit(|&x| x.len() == 5 && x.contains(c) && x.contains(f));
         // We can deduce '2' as it is the only number to have length 5 and share 2 values in common with '4'
-        let two = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 5)
-            .filter(|x| x.chars().filter(|&y| four.contains(y)).count() == 2)
-            .collect::<Vec<&String>>()[0];
+        let two = self.deduce_digit(|&x| {
+            x.len() == 5 && four.chars().filter(|&y| x.contains(y)).count() == 2
+        });
         // We can deduce b as '4' set minus '3'
-        let b = four
-            .chars()
-            .filter(|&x| !three.contains(x))
-            .collect::<String>()
-            .chars()
-            .next()
-            .unwrap();
+        let b = deduce_segment(&four, |&x| !three.contains(x));
         // We can deduce '5' as it is the only number to have length 5 and contain b
-        let five = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 5 && x.contains(b))
-            .collect::<Vec<&String>>()[0];
+        let five = self.deduce_digit(|&x| x.len() == 5 && x.contains(b));
         // We can deduce d as '4' set minus '1' set minus 'b'
-        let d = four
-            .chars()
-            .filter(|&x| !one.contains(x) && x != b)
-            .collect::<String>()
-            .chars()
-            .next()
-            .unwrap();
+        let d = deduce_segment(&four, |&x| !one.contains(x) && x != b);
         // We can deduce '0' as it is the only number to have length 6 and not contain d
-        let zero = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 6 && !x.contains(d))
-            .collect::<Vec<&String>>()[0];
+        let zero = self.deduce_digit(|&x| x.len() == 6 && !x.contains(d));
         // We can deduce '9' as it is the only number to have length 6 and contain both c and d
-        let nine = self
-            .patterns
-            .iter()
-            .filter(|x| x.len() == 6 && x.contains(c) && x.contains(d))
-            .collect::<Vec<&String>>()[0];
-        let digits = vec![
-            sort(zero),
-            sort(one),
-            sort(two),
-            sort(three),
-            sort(four),
-            sort(five),
-            sort(six),
-            sort(seven),
-            sort(eight),
-            sort(nine),
-        ];
+        let nine = self.deduce_digit(|&x| x.len() == 6 && x.contains(c) && x.contains(d));
+        let digits = vec![zero, one, two, three, four, five, six, seven, eight, nine];
         // We can now decode the output
         let mut output = 0;
         for pattern in &self.outputs {
@@ -171,6 +97,31 @@ impl Display {
         }
         output
     }
+
+    fn deduce_digit<T>(&self, predicate: T) -> String
+    where
+        T: Fn(&&String) -> bool,
+    {
+        let result = self
+            .patterns
+            .iter()
+            .filter(predicate)
+            .collect::<Vec<&String>>()[0];
+        sort(result)
+    }
+}
+
+fn deduce_segment<T>(source: &str, predicate: T) -> char
+where
+    T: Fn(&char) -> bool,
+{
+    source
+        .chars()
+        .filter(predicate)
+        .collect::<String>()
+        .chars()
+        .next()
+        .unwrap()
 }
 
 fn sort(s: &str) -> String {
