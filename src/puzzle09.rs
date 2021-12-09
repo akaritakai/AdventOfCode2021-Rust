@@ -1,5 +1,5 @@
-use std::collections::{BinaryHeap, HashSet};
 use crate::puzzle::AbstractPuzzle;
+use std::collections::{BinaryHeap, HashSet};
 
 pub struct Puzzle09 {
     grid: Vec<Vec<u32>>,
@@ -13,7 +13,11 @@ impl AbstractPuzzle for Puzzle09 {
     }
 
     fn solve_part_1(&self) -> String {
-        self.low_points().iter().map(|&(x, y)| self.grid[y][x] + 1).sum::<u32>().to_string()
+        self.low_points()
+            .iter()
+            .map(|&(x, y)| self.grid[y][x] + 1)
+            .sum::<u32>()
+            .to_string()
     }
 
     fn solve_part_2(&self) -> String {
@@ -41,7 +45,8 @@ impl AbstractPuzzle for Puzzle09 {
 
 impl Puzzle09 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
-        let grid = input.lines()
+        let grid = input
+            .lines()
             .map(|line| {
                 line.chars()
                     .map(|c| c.to_digit(10).unwrap())
@@ -61,7 +66,11 @@ impl Puzzle09 {
         let mut points = Vec::new();
         for y in 0..self.height {
             for x in 0..self.width {
-                if self.adjacent(x, y).iter().all(|&(i, j)| self.grid[j][i] > self.grid[y][x]) {
+                if self
+                    .adjacent(x, y)
+                    .iter()
+                    .all(|&(i, j)| self.grid[j][i] > self.grid[y][x])
+                {
                     points.push((x, y));
                 }
             }
