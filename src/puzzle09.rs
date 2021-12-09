@@ -20,19 +20,19 @@ impl AbstractPuzzle for Puzzle09 {
         let mut basin_sizes = BinaryHeap::new();
         let mut seen = HashSet::new();
         for point in self.low_points() {
-            let mut basin_size = 0;
+            let mut size = 0;
             let mut queue = vec![point];
             while let Some((x, y)) = queue.pop() {
                 if seen.contains(&(x, y)) {
                     continue;
                 }
                 seen.insert((x, y));
-                basin_size += 1;
+                size += 1;
                 for (x, y) in self.adjacent_rising(x, y) {
                     queue.push((x, y));
                 }
             }
-            basin_sizes.push(basin_size);
+            basin_sizes.push(size);
         }
         // Take the largest 3 values of basin_sizes and multiply them together
         basin_sizes.iter().take(3).product::<u32>().to_string()
