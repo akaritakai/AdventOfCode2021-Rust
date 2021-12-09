@@ -38,7 +38,6 @@ impl AbstractPuzzle for Puzzle09 {
             }
             basin_sizes.push(size);
         }
-        // Take the largest 3 values of basin_sizes and multiply them together
         basin_sizes.iter().take(3).product::<u32>().to_string()
     }
 }
