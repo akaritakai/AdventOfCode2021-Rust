@@ -33,22 +33,14 @@ impl Puzzle08 {
         let displays = input
             .lines()
             .map(|line| {
-                let parts = line
-                    .split(" | ")
+                let parts = line.split(" | ").collect::<Vec<&str>>();
+                let patterns = parts[0]
+                    .split(' ')
                     .map(|x| x.to_string())
                     .collect::<Vec<String>>();
                 let outputs = parts[1]
                     .split(' ')
                     .map(|x| x.to_string())
-                    .collect::<Vec<String>>();
-                let patterns = line
-                    .split(" | ")
-                    .map(|part| {
-                        part.split(' ')
-                            .map(|x| x.to_string())
-                            .collect::<Vec<String>>()
-                    })
-                    .flatten()
                     .collect::<Vec<String>>();
                 Display { patterns, outputs }
             })
