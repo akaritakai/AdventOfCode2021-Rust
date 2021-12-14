@@ -31,9 +31,8 @@ impl AbstractPuzzle for Puzzle14 {
 impl Puzzle14 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         let parts = input.trim().split("\n\n").collect::<Vec<&str>>();
-        let template = parts[0].trim().to_string();
+        let template = parts[0].to_string();
         let rules = parts[1]
-            .trim()
             .split('\n')
             .map(|line| {
                 let parts = line.split(" -> ").collect::<Vec<&str>>();
