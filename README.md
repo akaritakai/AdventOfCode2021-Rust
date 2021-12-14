@@ -2,8 +2,8 @@
 
 [![Build Status](https://github.com/akaritakai/AdventOfCode2021-Rust/actions/workflows/main.yml/badge.svg)](https://github.com/akaritakai/AdventOfCode2021-Rust/actions)
 [![Code Coverage](https://img.shields.io/codecov/c/github/akaritakai/AdventOfCode2021-Rust.svg)](https://codecov.io/gh/akaritakai/AdventOfCode2021-Rust)
-![Stars](https://img.shields.io/badge/stars%20⭐-26-yellow)
-![Days Completed](https://img.shields.io/badge/days%20completed-13-green)
+![Stars](https://img.shields.io/badge/stars%20⭐-28-yellow)
+![Days Completed](https://img.shields.io/badge/days%20completed-14-green)
 
 This repo contains my Advent Of Code 2021 solutions in Rust.
 
