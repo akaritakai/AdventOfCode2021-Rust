@@ -44,10 +44,8 @@ impl Puzzle14 {
 
     fn make_counter(&self) -> HashMap<String, u64> {
         let mut counter = HashMap::new();
-        for i in 1..self.template.len() {
-            let mut key = String::new();
-            key.push(self.template.chars().nth(i - 1).unwrap());
-            key.push(self.template.chars().nth(i).unwrap());
+        for i in 0..self.template.len() - 1 {
+            let key = self.template[i..i + 2].to_string();
             *counter.entry(key).or_insert(0) += 1;
         }
         counter
@@ -70,11 +68,9 @@ impl Puzzle14 {
     fn score(&self, counter: &HashMap<String, u64>) -> u64 {
         let mut map = [0; 26];
         for (pair, value) in counter {
-            let c = pair.chars().next().unwrap() as usize - 'A' as usize;
-            map[c] += *value;
+            map[pair.chars().next().unwrap() as usize - 'A' as usize] += *value;
         }
-        let c = self.template.chars().last().unwrap() as usize - 'A' as usize;
-        map[c] += 1;
+        map[self.template.chars().last().unwrap() as usize - 'A' as usize] += 1;
         let max = map.iter().filter(|&&x| x != 0).max().unwrap();
         let min = map.iter().filter(|&&x| x != 0).min().unwrap();
         max - min
