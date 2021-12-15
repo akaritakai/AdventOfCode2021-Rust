@@ -20,7 +20,7 @@ impl AbstractPuzzle for Puzzle04 {
                 }
             }
         }
-        panic!("No bingo board won with the given input");
+        unreachable!()
     }
 
     fn solve_part_2(&self) -> String {
@@ -34,7 +34,7 @@ impl AbstractPuzzle for Puzzle04 {
                 }
             }
         }
-        panic!("Not all bingo board have won with the given input");
+        unreachable!()
     }
 }
 
