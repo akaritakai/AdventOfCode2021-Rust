@@ -45,27 +45,9 @@ fn evaluate(packet: &Packet) -> u64 {
         2 => packet.sub_packets.iter().map(evaluate).min().unwrap(),
         3 => packet.sub_packets.iter().map(evaluate).max().unwrap(),
         4 => packet.payload,
-        5 => {
-            if evaluate(&packet.sub_packets[0]) > evaluate(&packet.sub_packets[1]) {
-                1
-            } else {
-                0
-            }
-        }
-        6 => {
-            if evaluate(&packet.sub_packets[0]) < evaluate(&packet.sub_packets[1]) {
-                1
-            } else {
-                0
-            }
-        }
-        7 => {
-            if evaluate(&packet.sub_packets[0]) == evaluate(&packet.sub_packets[1]) {
-                1
-            } else {
-                0
-            }
-        }
+        5 => (evaluate(&packet.sub_packets[0]) > evaluate(&packet.sub_packets[1])) as u64,
+        6 => (evaluate(&packet.sub_packets[0]) < evaluate(&packet.sub_packets[1])) as u64,
+        7 => (evaluate(&packet.sub_packets[0]) == evaluate(&packet.sub_packets[1])) as u64,
         _ => panic!("Unknown packet type"),
     };
 }
