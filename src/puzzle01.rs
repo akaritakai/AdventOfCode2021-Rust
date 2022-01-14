@@ -1,7 +1,7 @@
 use crate::puzzle::AbstractPuzzle;
 
 pub struct Puzzle01 {
-    input: String,
+    depths: Vec<u32>,
 }
 
 impl AbstractPuzzle for Puzzle01 {
@@ -10,44 +10,38 @@ impl AbstractPuzzle for Puzzle01 {
     }
 
     fn solve_part_1(&self) -> String {
-        let depths = self
-            .input
-            .lines()
-            .map(|line| line.parse::<i32>().unwrap())
-            .collect::<Vec<i32>>();
-        let mut count = 0;
-        for i in 1..depths.len() {
-            if depths[i] > depths[i - 1] {
-                count += 1;
-            }
-        }
-        count.to_string()
+        self.count_increases(1).to_string()
     }
 
     fn solve_part_2(&self) -> String {
-        let depths = self
-            .input
-            .lines()
-            .map(|line| line.parse::<i32>().unwrap())
-            .collect::<Vec<i32>>();
-        let mut count = 0;
-        let mut prev_sum = depths[0] + depths[1] + depths[2];
-        for i in 3..depths.len() {
-            let sum = depths[i - 2] + depths[i - 1] + depths[i];
-            if sum > prev_sum {
-                count += 1;
-            }
-            prev_sum = sum;
-        }
-        count.to_string()
+        self.count_increases(3).to_string()
     }
 }
 
 impl Puzzle01 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         Box::new(Puzzle01 {
-            input: input.to_string(),
+            depths: input
+                .lines()
+                .map(|line| line.parse::<u32>().unwrap())
+                .collect(),
         })
+    }
+
+    fn count_increases(&self, window_size: usize) -> u32 {
+        let mut count = 0;
+        let mut prev_sum = 0;
+        for i in 0..window_size {
+            prev_sum += self.depths[i];
+        }
+        for i in window_size..self.depths.len() {
+            let sum = prev_sum + self.depths[i] - self.depths[i - window_size];
+            if sum > prev_sum {
+                count += 1;
+            }
+            prev_sum = sum;
+        }
+        count
     }
 }
 

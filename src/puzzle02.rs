@@ -1,7 +1,7 @@
 use crate::puzzle::AbstractPuzzle;
 
 pub struct Puzzle02 {
-    input: String,
+    instructions: Vec<Instruction>,
 }
 
 impl AbstractPuzzle for Puzzle02 {
@@ -12,13 +12,11 @@ impl AbstractPuzzle for Puzzle02 {
     fn solve_part_1(&self) -> String {
         let mut x = 0;
         let mut y = 0;
-        for line in self.input.lines() {
-            let instruction = line.split_whitespace().collect::<Vec<&str>>();
-            let value = instruction[1].parse::<i32>().unwrap();
-            match instruction[0] {
-                "forward" => x += value,
-                "down" => y += value,
-                "up" => y -= value,
+        for instruction in &self.instructions {
+            match instruction.command.as_str() {
+                "forward" => x += instruction.value,
+                "down" => y += instruction.value,
+                "up" => y -= instruction.value,
                 _ => {}
             }
         }
@@ -29,16 +27,14 @@ impl AbstractPuzzle for Puzzle02 {
         let mut x = 0;
         let mut y = 0;
         let mut aim = 0;
-        for line in self.input.lines() {
-            let instruction = line.split_whitespace().collect::<Vec<&str>>();
-            let value = instruction[1].parse::<i32>().unwrap();
-            match instruction[0] {
+        for instruction in &self.instructions {
+            match instruction.command.as_str() {
                 "forward" => {
-                    x += value;
-                    y += aim * value;
+                    x += instruction.value;
+                    y += aim * instruction.value;
                 }
-                "down" => aim += value,
-                "up" => aim -= value,
+                "down" => aim += instruction.value,
+                "up" => aim -= instruction.value,
                 _ => {}
             }
         }
@@ -49,9 +45,23 @@ impl AbstractPuzzle for Puzzle02 {
 impl Puzzle02 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
         Box::new(Puzzle02 {
-            input: input.to_string(),
+            instructions: input
+                .lines()
+                .map(|line| {
+                    let tokens = line.split_whitespace().collect::<Vec<&str>>();
+                    Instruction {
+                        command: tokens[0].to_string(),
+                        value: tokens[1].parse::<i32>().unwrap(),
+                    }
+                })
+                .collect(),
         })
     }
+}
+
+struct Instruction {
+    command: String,
+    value: i32,
 }
 
 #[cfg(test)]

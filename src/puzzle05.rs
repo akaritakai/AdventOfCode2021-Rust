@@ -1,10 +1,10 @@
 use crate::puzzle::AbstractPuzzle;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::collections::HashMap;
 
 pub struct Puzzle05 {
-    segments: Vec<LineSegment>,
+    diagonal_lines: Vec<Vec<u32>>,
+    non_diagonal_lines: Vec<Vec<u32>>,
 }
 
 impl AbstractPuzzle for Puzzle05 {
@@ -13,78 +13,60 @@ impl AbstractPuzzle for Puzzle05 {
     }
 
     fn solve_part_1(&self) -> String {
-        let mut points: HashMap<(i32, i32), usize> = HashMap::new();
-        for segment in &self.segments {
-            if segment.is_vertical_or_horizontal() {
-                for point in segment.points() {
-                    points.insert(point, points.get(&point).unwrap_or(&0) + 1);
+        let mut count = 0;
+        for x in 0..1000 {
+            for y in 0..1000 {
+                if self.non_diagonal_lines[x][y] > 1 {
+                    count += 1;
                 }
             }
         }
-        let count = points.values().filter(|&x| *x >= 2).count();
         count.to_string()
     }
 
     fn solve_part_2(&self) -> String {
-        let mut points: HashMap<(i32, i32), usize> = HashMap::new();
-        for segment in &self.segments {
-            for point in segment.points() {
-                points.insert(point, points.get(&point).unwrap_or(&0) + 1);
+        let mut count = 0;
+        for x in 0..1000 {
+            for y in 0..1000 {
+                if self.diagonal_lines[x][y] + self.non_diagonal_lines[x][y] > 1 {
+                    count += 1;
+                }
             }
         }
-        let count = points.values().filter(|&x| *x >= 2).count();
         count.to_string()
     }
 }
 
 impl Puzzle05 {
     pub fn create(input: &str) -> Box<dyn AbstractPuzzle> {
-        Box::new(Puzzle05 {
-            segments: input
-                .lines()
-                .map(LineSegment::parse)
-                .collect::<Vec<LineSegment>>(),
-        })
-    }
-}
-
-struct LineSegment {
-    x1: i32,
-    y1: i32,
-    x2: i32,
-    y2: i32,
-}
-
-impl LineSegment {
-    fn parse(line: &str) -> LineSegment {
         lazy_static! {
             static ref RE: Regex = Regex::new(r"(\d+),(\d+) -> (\d+),(\d+)").unwrap();
         }
-        let caps = RE.captures(line).unwrap();
-        LineSegment {
-            x1: caps[1].parse().unwrap(),
-            y1: caps[2].parse().unwrap(),
-            x2: caps[3].parse().unwrap(),
-            y2: caps[4].parse().unwrap(),
+        let mut diagonal_lines = vec![vec![0_u32; 1000]; 1000];
+        let mut non_diagonal_lines = vec![vec![0_u32; 1000]; 1000];
+        for cap in RE.captures_iter(input) {
+            let x1 = cap[1].parse::<i32>().unwrap();
+            let y1 = cap[2].parse::<i32>().unwrap();
+            let x2 = cap[3].parse::<i32>().unwrap();
+            let y2 = cap[4].parse::<i32>().unwrap();
+            let dx = (x2 - x1).signum();
+            let dy = (y2 - y1).signum();
+            let mut x = x1;
+            let mut y = y1;
+            while x != x2 + dx || y != y2 + dy {
+                if x1 != x2 && y1 != y2 {
+                    diagonal_lines[y as usize][x as usize] += 1;
+                } else {
+                    non_diagonal_lines[y as usize][x as usize] += 1;
+                }
+                x += dx;
+                y += dy;
+            }
         }
-    }
-
-    fn is_vertical_or_horizontal(&self) -> bool {
-        self.x1 == self.x2 || self.y1 == self.y2
-    }
-
-    fn points(&self) -> Vec<(i32, i32)> {
-        let mut points = Vec::new();
-        let dx = (self.x2 - self.x1).signum();
-        let dy = (self.y2 - self.y1).signum();
-        let mut x = self.x1;
-        let mut y = self.y1;
-        while x != self.x2 + dx || y != self.y2 + dy {
-            points.push((x, y));
-            x += dx;
-            y += dy;
-        }
-        points
+        Box::new(Puzzle05 {
+            diagonal_lines,
+            non_diagonal_lines,
+        })
     }
 }
 
